@@ -113,6 +113,10 @@ lhctl search schedule <wfSpecName> <majorVersion> <revision>
 
 # Search variables by value. Note the variable must be declared with `.searchable()`
 lhctl search variable --wfSpecName my-wfspec --name user-email --varType STR --value obiwan@jedi.temple
+
+lhctl search structDef
+
+lhctl get structDef my-struct 3 #version 3
 ```
 
 Almost all `--flag`s are optional and included here for documentation purposes.

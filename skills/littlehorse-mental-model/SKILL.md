@@ -29,6 +29,7 @@ Terms `InCode` are objects in our grpc API or protobuf
 * `ThreadRun`: running instance of a `ThreadSpec`. Each `WfRun` has an "entrypoint" `ThreadRun` which defines the lifecycle of the `WfRun`
 * `ExternalEvent`: a record in the LH API signifying that something happened. An `ExternalEvent` contains a specific `WfRunId`. A `ThreadRun` can wait for an `ExternalEvent` before continuing. An `ExternalEvent` can also interrupt a `WfRun`
 * `CorrelatedEvent`: an record in the LH API that is not yet associated with a specific WfRun but can be matched to one or more `WfRun`s (creating an `ExternalEvent`) by a correlation key.
+* `Variable`: an instance of a variable, belonging to a `WfRun`. Inspecting it in the API is useful for debugging.
 
 ## Best Practices
 
