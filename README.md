@@ -20,3 +20,9 @@ Or for OpenCode:
 ```
 cp -r skills/* ~/.config/opencode/skills/
 ```
+
+### OpenCode plugin-based install (recommended)
+
+This repository also supports OpenCode plugin-based skill discovery.
+
+See `.opencode/README.md` for setup and maintainer notes.
