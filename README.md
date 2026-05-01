@@ -26,3 +26,4 @@ cp -r skills/* ~/.config/opencode/skills/
 This repository also supports OpenCode plugin-based skill discovery.
 
 See `.opencode/README.md` for setup and maintainer notes.
+For verification and troubleshooting steps, see `.opencode/README.md`.
