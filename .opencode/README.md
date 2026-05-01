@@ -31,6 +31,7 @@ You can verify discovery with the `skill` tool, for example by listing skills an
 - Keep plugin behavior minimal and idempotent.
 - Fail fast if `skills/` cannot be found; do not silently ignore misconfiguration.
 - Prefer Node stdlib only unless a dependency is strictly necessary.
+- Keep root `package.json` with `"main": ".opencode/plugins/lh-skills.js"`; OpenCode plugin loading resolves entry via package metadata.
 
 ## Troubleshooting
 
