@@ -54,6 +54,46 @@ You can list all `TaskRun`s for a `WfRun` as follows:
 lhctl list taskRun asghasfjdokfjwoei
 ```
 
+## `ERROR` vs `EXCEPTION`
+
+- `ERROR`: technical failure (timeouts, crashes, serialization/type problems). Usually needs code, config, or infrastructure changes.
+- `EXCEPTION`: business failure path raised intentionally by app logic (for example via task-level business exceptions). Usually needs workflow-level handling and expected-path UX.
+
+Treat these as different classes of incidents when deciding remediation.
+
+## Where the Real Error Lives
+
+In most task failures, `NodeRun` tells you where it failed, but `TaskRun` contains the actionable error payload.
+
+```bash
+# 1) Locate failing node
+lhctl get nodeRun <wfRunId> <threadRunNumber> <nodePosition>
+
+# 2) Get task-level error payload
+lhctl get taskRun <wfRunId> <taskGuid>
+```
+
+If retries are enabled, inspect all attempts on the `TaskRun`, not only the first attempt.
+
+## Child WfRun ID Troubleshooting
+
+If `lhctl get wfRun <id>` returns `NotFound` for child runs, use a composite id:
+
+```bash
+<parent-wfrun-id>_<child-wfrun-id>
+```
+
+For deeper nesting, continue appending with underscores.
+
+## Failure Classification
+
+| Type | Typical Signal | Next Action |
+|------|----------------|-------------|
+| Deterministic bug | Same input fails repeatedly | Fix code path and add tests |
+| Transient/infra | Timeouts, temporary network/service failures | Tune retries/backoff and improve resilience |
+| Invalid input | Validation or schema errors | Validate earlier and return clear business exception |
+| Business rule failure | Expected business precondition not met | Handle explicitly in workflow logic |
+
 ### Common Problems
 
 * If a `TaskRun` is `TASK_SCHEDULED`, there might not be a deployed task worker. Look at `lhctl get taskWorkerGroup <taskDefName>`.
