@@ -16,6 +16,13 @@ Restart OpenCode after updating config.
 
 You can verify discovery with the `skill` tool, for example by listing skills and loading one from this repo.
 
+## Verify
+
+1. Confirm plugin load logs include `lh-skills`:
+   `opencode run --print-logs "show me your littlehorse skills" 2>&1 | rg -i "plugin|lh-skills"`
+2. In chat, use the `skill` tool to list available skills.
+3. Load one skill from this repo (for example `littlehorse-mental-model`) to confirm loadability.
+
 ## Why this plugin exists
 
 - It ensures skills are discoverable without each user manually setting `skills.paths`.
@@ -31,6 +38,7 @@ You can verify discovery with the `skill` tool, for example by listing skills an
 - Keep plugin behavior minimal and idempotent.
 - Fail fast if `skills/` cannot be found; do not silently ignore misconfiguration.
 - Prefer Node stdlib only unless a dependency is strictly necessary.
+- Keep root `package.json` with `"main": ".opencode/plugins/lh-skills.js"`; OpenCode plugin loading resolves entry via package metadata.
 
 ## Troubleshooting
 
@@ -39,4 +47,6 @@ If skills are not discoverable:
 1. Confirm the plugin entry in `opencode.json` is correct.
 2. Restart OpenCode.
 3. Check that this repository contains the `skills/` directory.
-4. Check OpenCode logs for plugin loading errors.
+4. Check OpenCode logs for plugin loading errors:
+   `opencode run --print-logs "show me your littlehorse skills" 2>&1 | rg -i "plugin|lh-skills"`
+5. Verify that a skill can be both listed and loaded via the `skill` tool.

@@ -1,0 +1,6 @@
+{
+  "name": "lh-skills",
+  "version": "0.0.1",
+  "type": "module",
+  "main": ".opencode/plugins/lh-skills.js"
+}
