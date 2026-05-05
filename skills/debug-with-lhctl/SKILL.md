@@ -12,10 +12,33 @@ The output of all `lhctl` commands is just the GRPC call response but in JSON fo
 
 ## Basic Debug Process
 
-Find all failed WfRun's for a `WfSpec` which started within last 5 min:
+Find failed `WfRun`s for a `WfSpec` which started within the last 5 min:
 
 ```
 lhctl search wfRun my-workflow-spec --earliestMinutesAgo 5 --status ERROR
+```
+
+`search wfRun` also supports optional positional filters:
+
+```bash
+lhctl search wfRun <wfSpecName> <majorVersion> <revision> --status ERROR --limit 100
+```
+
+Time and result filters:
+
+- `--status <STATUS>`: Filter by status (`RUNNING`, `COMPLETED`, `HALTED`, `ERROR`, `EXCEPTION`).
+- `--earliestMinutesAgo N`: Include runs started within the last `N` minutes.
+- `--latestMinutesAgo N`: Exclude the most recent `N` minutes (use with `--earliestMinutesAgo` for windows).
+- `--limit N`: Maximum number of results returned by the call.
+
+Examples:
+
+```bash
+# Last hour
+lhctl search wfRun my-workflow-spec --earliestMinutesAgo 60 --status ERROR
+
+# Between 2h and 24h ago
+lhctl search wfRun my-workflow-spec --earliestMinutesAgo 1440 --latestMinutesAgo 120 --status ERROR --limit 1000
 ```
 
 The WfRun might be stuck `RUNNING`, try that status too, or just simply leave out the `STATUS`. Once you have the ID, get the wfRun:
@@ -53,6 +76,65 @@ You can list all `TaskRun`s for a `WfRun` as follows:
 ```
 lhctl list taskRun asghasfjdokfjwoei
 ```
+
+## `ERROR` vs `EXCEPTION`
+
+- `ERROR`: technical failure (timeouts, crashes, serialization/type problems). Usually needs code, config, or infrastructure changes.
+- `EXCEPTION`: business failure path raised intentionally by app logic (for example via task-level business exceptions). Usually needs workflow-level handling and expected-path UX.
+
+Treat these as different classes of incidents when deciding remediation.
+
+## Where the Real Error Lives
+
+In most task failures, `NodeRun` tells you where it failed, but `TaskRun` contains the actionable error payload.
+
+```bash
+# 1) Locate failing node
+lhctl get nodeRun <wfRunId> <threadRunNumber> <nodePosition>
+
+# 2) Get task-level error payload
+lhctl get taskRun <wfRunId> <taskGuid>
+```
+
+If retries are enabled, inspect all attempts on the `TaskRun`, not only the first attempt.
+
+## Child WfRun ID Troubleshooting
+
+If `lhctl get wfRun <id>` returns `NotFound` for child runs, use a composite id:
+
+```bash
+<parent-wfrun-id>_<child-wfrun-id>
+```
+
+For deeper nesting, continue appending with underscores.
+
+## Build Canonical `WfRunId` from Search Results
+
+When `lhctl search wfRun ...` returns both `id` and `parentWfRunId.id`, build lineage-based ids for follow-up debugging commands:
+
+- Child: `<parent>_<child>`
+- Grandchild: `<parent>_<child>_<grandchild>`
+- Keep appending for deeper nesting.
+
+Use this canonical id consistently for follow-up inspection:
+
+```bash
+WFRUN_ID=<parent>_<child>[_<grandchild>...]
+lhctl get wfRun "$WFRUN_ID"
+lhctl list nodeRun "$WFRUN_ID"
+lhctl get taskRun "$WFRUN_ID" <taskGuid>
+```
+
+If plain `<id>` returns `NotFound` and `parentWfRunId` is present, retry with the lineage id first.
+
+## Failure Classification
+
+| Type | Typical Signal | Next Action |
+|------|----------------|-------------|
+| Deterministic bug | Same input fails repeatedly | Fix code path and add tests |
+| Transient/infra | Timeouts, temporary network/service failures | Tune retries/backoff and improve resilience |
+| Invalid input | Validation or schema errors | Validate earlier and return clear business exception |
+| Business rule failure | Expected business precondition not met | Handle explicitly in workflow logic |
 
 ### Common Problems
 
