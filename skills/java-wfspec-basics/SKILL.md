@@ -147,6 +147,37 @@ wf.waitForEvent("document-signed")
         .build());
 ```
 
+## Child WfRun
+
+`wf.runWf()` starts a new child `WfRun` of another (or the same) `WfSpec` from within the current `WfRun`. Unlike `spawnThread`, which creates a new thread inside the same `WfRun`, `runWf` launches an entirely separate `WfRun`.
+
+Key points:
+* The child `WfRun` runs as a completely separate workflow instance.
+* You can pass input variables to the child `WfRun`.
+* The parent `WfRun` can wait for the child `WfRun` to complete.
+* If the child `WfRun` fails with an `ERROR`, the parent receives a `CHILD_FAILURE` error when it waits. If the child fails with a business `EXCEPTION` the parent receives the same exception.
+* The child `WfSpec`should be registered before running it as a child `WfRun`.
+
+### Starting a Child WfRun
+
+```java
+import io.littlehorse.sdk.wfsdk.SpawnedWfRun;
+import io.littlehorse.sdk.wfsdk.WfRunVariable;
+
+WfRunVariable inputVar = wf.declareStr("some-input");
+
+SpawnedWfRun childWfRun = wf.runWf(
+    "other-wf-spec-name", // name of the WfSpec to run
+    Map.of("child-input-var", inputVar) // input variables
+);
+
+// Continue doing work in the parent WfRun in parallel...
+wf.execute("some-parent-task");
+
+// Wait for the child WfRun to complete
+wf.waitForChildWf(childWfRun);
+```
+
 ## Gotchas
 
 - `WfRunVariable` is a symbolic handle, not a runtime Java object.

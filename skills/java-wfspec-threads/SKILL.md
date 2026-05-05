@@ -104,4 +104,3 @@ public void childLogic(WorkflowThread wf) {
 * `waitForThreads()` -> waits for all threads. Fails as soon as first thread fails, other child threads move to `HALTING` -> `HALTED` if they're not terminated yet.
 * `waitForAnyOf()` -> waits for any thread to complete. Ignores failures unless all children fail, then throws `CHILD_FAILURE`.
 * `waaitForFirstOf()` -> waits for the first thread to either fail or complete, and halts the others. If first thread fails, then the failure thrown by first thread propagates up.
-
