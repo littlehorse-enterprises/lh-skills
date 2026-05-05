@@ -12,10 +12,33 @@ The output of all `lhctl` commands is just the GRPC call response but in JSON fo
 
 ## Basic Debug Process
 
-Find all failed WfRun's for a `WfSpec` which started within last 5 min:
+Find failed `WfRun`s for a `WfSpec` which started within the last 5 min:
 
 ```
 lhctl search wfRun my-workflow-spec --earliestMinutesAgo 5 --status ERROR
+```
+
+`search wfRun` also supports optional positional filters:
+
+```bash
+lhctl search wfRun <wfSpecName> <majorVersion> <revision> --status ERROR --limit 100
+```
+
+Time and result filters:
+
+- `--status <STATUS>`: Filter by status (`RUNNING`, `COMPLETED`, `HALTED`, `ERROR`, `EXCEPTION`).
+- `--earliestMinutesAgo N`: Include runs started within the last `N` minutes.
+- `--latestMinutesAgo N`: Exclude the most recent `N` minutes (use with `--earliestMinutesAgo` for windows).
+- `--limit N`: Maximum number of results returned by the call.
+
+Examples:
+
+```bash
+# Last hour
+lhctl search wfRun my-workflow-spec --earliestMinutesAgo 60 --status ERROR
+
+# Between 2h and 24h ago
+lhctl search wfRun my-workflow-spec --earliestMinutesAgo 1440 --latestMinutesAgo 120 --status ERROR --limit 1000
 ```
 
 The WfRun might be stuck `RUNNING`, try that status too, or just simply leave out the `STATUS`. Once you have the ID, get the wfRun:
@@ -84,6 +107,25 @@ If `lhctl get wfRun <id>` returns `NotFound` for child runs, use a composite id:
 ```
 
 For deeper nesting, continue appending with underscores.
+
+## Build Canonical `WfRunId` from Search Results
+
+When `lhctl search wfRun ...` returns both `id` and `parentWfRunId.id`, build lineage-based ids for follow-up debugging commands:
+
+- Child: `<parent>_<child>`
+- Grandchild: `<parent>_<child>_<grandchild>`
+- Keep appending for deeper nesting.
+
+Use this canonical id consistently for follow-up inspection:
+
+```bash
+WFRUN_ID=<parent>_<child>[_<grandchild>...]
+lhctl get wfRun "$WFRUN_ID"
+lhctl list nodeRun "$WFRUN_ID"
+lhctl get taskRun "$WFRUN_ID" <taskGuid>
+```
+
+If plain `<id>` returns `NotFound` and `parentWfRunId` is present, retry with the lineage id first.
 
 ## Failure Classification
 
