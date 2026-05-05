@@ -113,7 +113,7 @@ Key points:
 * The child `WfRun` runs as a completely separate workflow instance.
 * You can pass input variables to the child `WfRun`.
 * The parent `WfRun` can wait for the child `WfRun` to complete.
-* If the child `WfRun` fails, the parent receives a `CHILD_FAILURE` error when it waits.
+* If the child `WfRun` fails with an `ERROR`, the parent receives a `CHILD_FAILURE` error when it waits. If the child fails with a business `EXCEPTION` the parent receives the same exception.
 
 ### Starting a Child WfRun
 
